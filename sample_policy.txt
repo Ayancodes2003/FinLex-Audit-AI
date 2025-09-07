@@ -1,0 +1,17 @@
+
+ANTI-MONEY LAUNDERING POLICY
+
+Section 1: Transaction Reporting Requirements
+Financial institutions must report all currency transactions in amounts exceeding $10,000 to the Financial Crimes Enforcement Network (FinCEN) within 15 calendar days of the transaction.
+
+Section 2: Large Transaction Monitoring  
+Banks shall monitor and flag any individual transaction exceeding $100,000 for enhanced due diligence procedures.
+
+Section 3: Cash Transaction Controls
+All cash transactions exceeding $10,000 must be reported to regulatory authorities within 24 hours of occurrence.
+
+Section 4: Record Keeping Requirements
+Financial institutions shall maintain records of all wire transfers and electronic payments for a minimum period of five years from the date of the transaction.
+
+Section 5: Suspicious Activity Reporting
+Banks must file Suspicious Activity Reports (SARs) for any transaction that appears unusual or potentially suspicious within 30 days of detection.

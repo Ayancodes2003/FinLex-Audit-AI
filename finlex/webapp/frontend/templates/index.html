@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinLex Audit AI - Financial Compliance Platform</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏦</text></svg>">
+    <style>
+        /* Inline critical CSS for immediate rendering */
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 0; }
+        .loading { text-align: center; padding: 2rem; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>🏦 FinLex Audit AI</h1>
+                <span class="tagline">AI-Powered Compliance Analysis</span>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-section="dashboard">Dashboard</button>
+                <button class="nav-btn" data-section="transactions">Transactions</button>
+                <button class="nav-btn" data-section="policies">Policies</button>
+                <button class="nav-btn" data-section="compliance">Compliance</button>
+                <button class="nav-btn" data-section="violations">Violations</button>
+            </nav>
+            <div class="system-status">
+                <span id="status-indicator" class="status-dot status-healthy"></span>
+                <span id="status-text">System Healthy</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="container">
+                <h2>📊 Compliance Dashboard</h2>
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <h3 id="total-transactions">-</h3>
+                            <p>Total Transactions</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-content">
+                            <h3 id="total-policies">-</h3>
+                            <p>Active Policies</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🚨</div>
+                        <div class="stat-content">
+                            <h3 id="total-violations">-</h3>
+                            <p>Total Violations</p>
+                            <span class="stat-delta" id="recent-violations">+0 this week</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-content">
+                            <h3 id="pending-reviews">-</h3>
+                            <p>Pending Reviews</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="dashboard-widgets">
+                    <div class="widget">
+                        <h3>🚨 Recent Violations</h3>
+                        <div id="recent-violations-list" class="violations-list">
+                            <div class="loading">Loading violations...</div>
+                        </div>
+                    </div>
+                    <div class="widget">
+                        <h3>📈 System Health</h3>
+                        <div class="health-metrics">
+                            <div class="health-item">
+                                <span class="health-label">Database</span>
+                                <span class="health-status healthy">✅ Connected</span>
+                            </div>
+                            <div class="health-item">
+                                <span class="health-label">AI Models</span>
+                                <span class="health-status healthy">✅ Ready</span>
+                            </div>
+                            <div class="health-item">
+                                <span class="health-label">Compliance Rules</span>
+                                <span class="health-status healthy">✅ Loaded</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Demo Data Generator -->
+                        <div class="demo-section" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                            <h4 style="margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280;">Demo & Testing</h4>
+                            <button class="btn btn-secondary" id="generate-sample-btn" style="width: 100%; font-size: 0.875rem;">
+                                🎲 Generate Sample Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transactions Section -->
+        <section id="transactions" class="section">
+            <div class="container">
+                <h2>💰 Transaction Management</h2>
+                
+                <div class="upload-section">
+                    <h3>📤 Upload Transaction Data</h3>
+                    <div class="upload-area" id="transaction-upload-area">
+                        <div class="upload-content">
+                            <div class="upload-icon">📁</div>
+                            <p>Drag & drop your CSV file here or <button class="link-btn" onclick="document.getElementById('transaction-file').click()">browse</button></p>
+                            <input type="file" id="transaction-file" accept=".csv" hidden>
+                            <small>Supported format: CSV with Paysim1-like structure</small>
+                        </div>
+                    </div>
+                    
+                    <div id="transaction-preview" class="file-preview hidden">
+                        <h4>File Preview</h4>
+                        <div id="transaction-table"></div>
+                        <div class="upload-actions">
+                            <button class="btn btn-primary" id="upload-transactions-btn">Upload Transactions</button>
+                            <button class="btn btn-secondary" id="cancel-upload-btn">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="upload-results" class="results-section hidden">
+                    <h3>Upload Results</h3>
+                    <div id="upload-status"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Policies Section -->
+        <section id="policies" class="section">
+            <div class="container">
+                <h2>📋 Policy Management</h2>
+                
+                <div class="upload-section">
+                    <h3>📤 Upload Policy Document</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="policy-title">Policy Title</label>
+                            <input type="text" id="policy-title" placeholder="Enter policy title">
+                        </div>
+                        <div class="form-group">
+                            <label for="policy-jurisdiction">Jurisdiction</label>
+                            <select id="policy-jurisdiction">
+                                <option value="US">United States</option>
+                                <option value="EU">European Union</option>
+                                <option value="UK">United Kingdom</option>
+                                <option value="CA">Canada</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="upload-area" id="policy-upload-area">
+                        <div class="upload-content">
+                            <div class="upload-icon">📄</div>
+                            <p>Drag & drop your policy document or <button class="link-btn" onclick="document.getElementById('policy-file').click()">browse</button></p>
+                            <input type="file" id="policy-file" accept=".txt,.md" hidden>
+                            <small>Supported formats: TXT, MD</small>
+                        </div>
+                    </div>
+                    
+                    <div id="policy-preview" class="file-preview hidden">
+                        <h4>Policy Content Preview</h4>
+                        <div id="policy-content" class="policy-content"></div>
+                        <div class="upload-actions">
+                            <button class="btn btn-primary" id="process-policy-btn">Process Policy</button>
+                            <button class="btn btn-secondary" id="cancel-policy-btn">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="policy-results" class="results-section hidden">
+                    <h3>Extracted Obligations</h3>
+                    <div id="obligations-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Compliance Section -->
+        <section id="compliance" class="section">
+            <div class="container">
+                <h2>🔍 Compliance Scanning</h2>
+                
+                <div class="scan-config">
+                    <h3>Scan Configuration</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="scan-jurisdiction">Jurisdiction</label>
+                            <select id="scan-jurisdiction">
+                                <option value="US">United States</option>
+                                <option value="EU">European Union</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="confidence-threshold">Confidence Threshold</label>
+                            <input type="range" id="confidence-threshold" min="0" max="1" step="0.1" value="0.7">
+                            <span id="confidence-value">70%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="scan-actions">
+                        <button class="btn btn-primary btn-large" id="run-scan-btn">
+                            🔍 Run Compliance Scan
+                        </button>
+                        <button class="btn btn-secondary" id="schedule-scan-btn">
+                            🗓️ Schedule Scan
+                        </button>
+                    </div>
+                </div>
+
+                <div id="scan-results" class="results-section hidden">
+                    <h3>Scan Results</h3>
+                    <div id="scan-progress" class="progress-section hidden">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <p class="loading">Scanning transactions against compliance rules...</p>
+                    </div>
+                    <div id="scan-output"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Violations Section -->
+        <section id="violations" class="section">
+            <div class="container">
+                <h2>🚨 Violation Management</h2>
+                
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-status="all">All Violations</button>
+                    <button class="tab-btn" data-status="pending">Pending Review</button>
+                    <button class="tab-btn" data-status="resolved">Resolved</button>
+                    <button class="tab-btn" data-status="high">High Risk</button>
+                </div>
+
+                <div id="violations-container" class="violations-list">
+                    <div class="loading">Loading violations...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
