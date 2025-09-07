@@ -1,0 +1,23 @@
+# Streamlit UI dependencies
+streamlit==1.28.2
+plotly==5.17.0
+pandas==2.1.4
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Additional UI components
+streamlit-elements==0.1.0
+streamlit-aggrid==0.3.4.post3
+streamlit-option-menu==0.3.6
+
+# Data visualization
+altair==5.2.0
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# File handling
+openpyxl==3.1.2
+xlsxwriter==3.1.9
+
+# Utils
+pillow==10.1.0

@@ -1,0 +1,216 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: finlex-postgres
+    environment:
+      POSTGRES_DB: finlex_db
+      POSTGRES_USER: finlex_user
+      POSTGRES_PASSWORD: finlex_pass
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finlex_user -d finlex_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: finlex-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FAISS Vector Database Service (mock with simple API)
+  vector-db:
+    build:
+      context: .
+      dockerfile: Dockerfile.vector-db
+    container_name: finlex-vector-db
+    ports:
+      - "8010:8010"
+    volumes:
+      - vector_data:/app/data
+    networks:
+      - finlex-network
+    environment:
+      - FAISS_INDEX_PATH=/app/data/obligations.index
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Transaction Ingest Service
+  ingest-service:
+    build:
+      context: ../services
+      dockerfile: Dockerfile.ingest
+    container_name: finlex-ingest
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://finlex_user:finlex_pass@postgres:5432/finlex_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Policy Extractor Service
+  extractor-service:
+    build:
+      context: ../services
+      dockerfile: Dockerfile.extractor
+    container_name: finlex-extractor
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://finlex_user:finlex_pass@postgres:5432/finlex_db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - VECTOR_DB_URL=http://vector-db:8010
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vector-db:
+        condition: service_healthy
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Compliance Matcher Service
+  matcher-service:
+    build:
+      context: ../services
+      dockerfile: Dockerfile.matcher
+    container_name: finlex-matcher
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=postgresql://finlex_user:finlex_pass@postgres:5432/finlex_db
+      - VECTOR_DB_URL=http://vector-db:8010
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vector-db:
+        condition: service_healthy
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # RAG Generator Service
+  raggenerator-service:
+    build:
+      context: ../services
+      dockerfile: Dockerfile.raggenerator
+    container_name: finlex-raggenerator
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://finlex_user:finlex_pass@postgres:5432/finlex_db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - VECTOR_DB_URL=http://vector-db:8010
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vector-db:
+        condition: service_healthy
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Main API Service
+  api-service:
+    build:
+      context: ../services
+      dockerfile: Dockerfile.api
+    container_name: finlex-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://finlex_user:finlex_pass@postgres:5432/finlex_db
+      - INGEST_SERVICE_URL=http://ingest-service:8001
+      - EXTRACTOR_SERVICE_URL=http://extractor-service:8002
+      - MATCHER_SERVICE_URL=http://matcher-service:8003
+      - RAGGENERATOR_SERVICE_URL=http://raggenerator-service:8004
+    depends_on:
+      ingest-service:
+        condition: service_healthy
+      extractor-service:
+        condition: service_healthy
+      matcher-service:
+        condition: service_healthy
+      raggenerator-service:
+        condition: service_healthy
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Streamlit UI
+  streamlit-ui:
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+    container_name: finlex-ui
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://api-service:8000
+    depends_on:
+      api-service:
+        condition: service_healthy
+    networks:
+      - finlex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  vector_data:
+    driver: local
+
+networks:
+  finlex-network:
+    driver: bridge
